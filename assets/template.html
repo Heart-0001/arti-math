@@ -136,6 +136,21 @@ window.MathJax = {
     toc.appendChild(a);
   });
   toc.hidden = entries.length < 2;
+  // 題目左欄：把 sticky 的 top 設成它一開始的位置，從第一下捲動就固定不動
+  function pinProbs() {
+    if (window.scrollY > 0) return;
+    var wrap = document.querySelector(".wrap");
+    var z = parseFloat(getComputedStyle(wrap).zoom) || 1;
+    document.querySelectorAll(".entry > .prob").forEach(function (p) {
+      p.style.top = "";
+      if (getComputedStyle(p).position !== "sticky") return;
+      var t = p.getBoundingClientRect().top;
+      if (t > 0 && t < window.innerHeight * 0.5) p.style.top = (t / z) + "px";
+    });
+  }
+  pinProbs();
+  window.addEventListener("load", pinProbs);
+  window.addEventListener("resize", pinProbs);
   if (!location.hash && entries.length > 1) {
     entries[entries.length - 1].scrollIntoView({ block: "start" });
   }
