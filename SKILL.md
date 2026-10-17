@@ -1,6 +1,6 @@
 ---
 name: arti-math
-description: Write the current answer onto a per-session artifact notebook page — math typeset with MathJax, diagrams drawn as inline SVG — and leave only a short summary plus the link in the terminal. Use ONLY when the user explicitly asks for it, e.g. types /arti-math, or says 「開 artifact 講」「用 artifact 回答」「寫到筆記頁」「這題畫在頁面上」「放到 artifact」, or, once a notebook page exists in this session, says 「接著寫」「加到筆記」「覆蓋筆記」「重寫筆記」. Do not use it on your own initiative when the user has not mentioned an artifact or the notebook page.
+description: Write the current answer onto a per-session artifact notebook page — math typeset with MathJax, diagrams drawn as inline SVG — and leave only a short summary plus the link in the terminal. Use ONLY when the user explicitly asks for it, e.g. types /arti-math, or says 「開 artifact 講」「用 artifact 回答」「寫到筆記頁」「這題畫在頁面上」「放到 artifact」, or, once a notebook page exists in this session, says 「接著寫」「下一題」「加到筆記」「覆蓋筆記」「重寫筆記」. Once the page exists, short follow-up questions (wording, concept checks, one-line "why") are answered in the terminal, not on the page — see "Page or terminal?". Do not use it on your own initiative when the user has not mentioned an artifact or the notebook page.
 ---
 
 # arti-math — notebook page for math and diagrams
@@ -11,6 +11,16 @@ The user studies engineering courses inside Claude Code. Raw LaTeX and ASCII dia
 
 - The page file always lives at **`<scratchpad>/note/note.html`**, where `<scratchpad>` is the session scratchpad directory from the system prompt (use its full absolute path). The scratchpad is unique per session, so "one page per session" falls out naturally.
 - Always publish with the **same `file_path`**, so the URL never changes and an open page updates in place.
+
+## Page or terminal?
+
+The page is for content that needs typesetting, not for every message. Decide by what the answer needs, not by how big the question is.
+
+- **Write to the page**: a new problem or topic (「下一題」「接著寫」), multi-line derivations (`aligned`), anything that needs a drawing (circuit, phasor diagram, waveform), or a crop of the problem / manual to compare against.
+- **Answer in the terminal**: follow-ups that clarify wording or concepts (「題目哪句在講什麼」「這個詞什麼意思」), one- or two-line "why" questions, and answers with at most a couple of simple formulas that read fine as Unicode / `$…$` in the terminal.
+- **Explicit request wins**: if the user says 「寫到筆記」「加到頁面」「放到 artifact」, write it to the page even if it is short.
+- After a terminal answer, do **not** ask whether to add it to the page; the user will say so.
+- An entry is one problem or one topic, not one chat message. When a follow-up the user wants on the page belongs to an existing entry, extend that entry (add a sub-heading inside its `<section>`) rather than appending a new one — the page should read like notes, not a chat log.
 
 ## Workflow
 
