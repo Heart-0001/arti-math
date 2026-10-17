@@ -86,6 +86,7 @@ Often the user is studying from a file — a textbook PDF, a solution manual, th
      <figcaption>Chapter3 Sol.pdf · PDF p.4</figcaption>
    </figure>
    ```
+6. **Fixed problem → two columns.** When the entry is built around a fixed source (a problem statement, a manual excerpt), wrap the `figure.source` plus the short 題意 paragraph in `<div class="prob">…</div>`, placed right after the `<h2>`. On wide screens the template then shows that block pinned in the left column while the explanation scrolls on the right; narrow screens stay single-column. Entries without a fixed source (concept questions, plain explanations) don't get a `.prob` and stay single-column — don't wrap other content in `.prob` just to get the layout.
 
 Crop only what the entry discusses. The images are context; the explanation, derivation and redrawn diagrams are still written out on the page as usual — don't paste a whole solution page in place of explaining it.
 
@@ -122,6 +123,7 @@ Crop only what the entry discusses. The images are context; the explanation, der
 | `ol.steps` | ordered derivation steps |
 | `figure.diagram` | SVG figure |
 | `figure.source` | cropped image from a course file (light + dark `<img>`), see above |
+| `.prob` | wraps the fixed problem (source crop + 題意) right after `<h2>`; pinned left column on wide screens |
 | `.tbl` | wraps a table; scrolls sideways if too wide |
 | `.tip` / `.warn` | hint / common mistake |
 | `.answer` | final answer, yellow highlight |
