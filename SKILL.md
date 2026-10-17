@@ -49,6 +49,36 @@ Rewrite `note.html` with Write: the template content (keeping the existing title
 
 2–4 lines only: the conclusion or final numeric answer, then a pointer that the full derivation and figures are on the page, with the link. Do **not** repeat the derivation in the terminal — the whole point is to read it on the page.
 
+## Working from course files
+
+Often the user is studying from a file — a textbook PDF, a solution manual, their own solution PDF ("帶我看 Ch3 sol 的 3.4"). They will not flip between the PDF and the page, so **the page must be self-contained**: put the relevant part of the file (the problem statement, the figure, the manual step being discussed) on the page as an image right above the explanation.
+
+1. **Find it.** Read the file with the Read tool (PDF `pages`), and/or locate text with the bundled script:
+   ```
+   py "$HOME/.claude/skills/arti-math/scripts/pdfcrop.py" find "<pdf>" "Problem 3.4"
+   ```
+   (`py` on Windows, `python3` elsewhere; needs `pip install pymupdf`.) `find` is a substring match — "3.4" also hits 3.40–3.49 — so confirm the page by looking at it.
+2. **Look before cropping.** `render <pdf> <page> <out.png>` writes a low-dpi page image; view it with Read and pick the box as page fractions `x0,y0,x1,y1` (origin top-left). `find` prints boxes in the same units, which helps place the top edge.
+3. **Crop.** Save into `<scratchpad>/note/img/`:
+   ```
+   py "$HOME/.claude/skills/arti-math/scripts/pdfcrop.py" crop "<pdf>" <page> "<scratchpad>/note/img/p3-4" --box 0.05,0.06,0.95,0.42
+   ```
+   This writes `p3-4.png` and `p3-4_dark.png`, already tinted to the page's paper/ink colors for each theme (no CSS filters, which blur). Add `--color` when the color itself carries meaning (colored plots); then the light image keeps its colors and the dark one is inverted. Read the cropped PNG once to check nothing is cut off; a problem that spans two pages gets two crops shown one after another.
+4. **Upload, then append.** `edits` cannot be combined with `files`, so it takes two publishes of the same `file_path`:
+   - first `Artifact` publish with `files: {"img/p3-4.png": "<scratchpad>/note/img/p3-4.png", "img/p3-4_dark.png": "<scratchpad>/note/img/p3-4_dark.png"}` (page unchanged),
+   - then the usual `edits` publish that appends the entry referencing them.
+   Uploaded files persist across later publishes, so each image is uploaded once.
+5. In the entry, cite the source in the caption (file name + PDF page; printed page too when it differs) so the user can find it again:
+   ```html
+   <figure class="source">
+     <img class="src-light" src="img/p3-4.png" alt="Problem 3.4 題目">
+     <img class="src-dark" src="img/p3-4_dark.png" alt="">
+     <figcaption>Chapter3 Sol.pdf · PDF p.4</figcaption>
+   </figure>
+   ```
+
+Crop only what the entry discusses. The images are context; the explanation, derivation and redrawn diagrams are still written out on the page as usual — don't paste a whole solution page in place of explaining it.
+
 ## Entry HTML
 
 ```html
@@ -81,6 +111,7 @@ Rewrite `note.html` with Write: the template content (keeping the existing title
 | `.math` | wraps display math; scrolls sideways if too wide |
 | `ol.steps` | ordered derivation steps |
 | `figure.diagram` | SVG figure |
+| `figure.source` | cropped image from a course file (light + dark `<img>`), see above |
 | `.tbl` | wraps a table; scrolls sideways if too wide |
 | `.tip` / `.warn` | hint / common mistake |
 | `.answer` | final answer, yellow highlight |

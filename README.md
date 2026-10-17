@@ -6,11 +6,13 @@
 - 電路圖、相量圖、方塊圖用 SVG 畫
 - 同一個 session 共用一頁，網址不變，每問一題就往下加一則，上方有目錄
 - 終端機只留 2–4 行結論和連結
+- 可以搭配檔案學習（課本、解答手冊、自己的解答 PDF），會把題目或圖直接裁下來放在講解上方，不用兩邊切換
 - 淺色和深色模式都看得清楚，手機也能看
 
 ## 需求
 
 - [Claude Code](https://claude.com/claude-code)，並且能使用 **Artifact** 功能（頁面會發佈到 claude.ai，預設只有你自己看得到）
+- 搭配 PDF 裁圖時需要 Python 和 PyMuPDF：`pip install pymupdf`
 
 ## 安裝
 
@@ -44,6 +46,7 @@ git clone https://github.com/Heart-0001/arti-math.git "$HOME\.claude\skills\arti
 
 ```
 /arti-math 三相負載 50 MVA、功因 0.8 落後、線電壓 13.8 kV，線電流多少？畫相量圖
+/arti-math 帶我看 Power Systems/Chapter3 Sol.pdf 的 3.10
 ```
 
 ## 檔案
@@ -52,5 +55,6 @@ git clone https://github.com/Heart-0001/arti-math.git "$HOME\.claude\skills\arti
 |---|---|
 | `SKILL.md` | 給 Claude 看的流程說明 |
 | `assets/template.html` | 筆記頁模板（版面、配色、MathJax、自動目錄） |
+| `scripts/pdfcrop.py` | 在 PDF 裡找題號、預覽頁面、裁出淺色和深色兩版的圖 |
 
 想改外觀，例如字體、配色或答案框顏色，直接改 `assets/template.html` 最上面的 CSS 變數即可。

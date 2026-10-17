@@ -76,6 +76,16 @@ figure.diagram figcaption { font-size: .85rem; color: var(--muted); margin-top: 
 svg .accent { stroke: var(--accent); fill: none; }
 svg .fill-accent { fill: var(--accent); }
 svg text { fill: currentColor; font-family: var(--font-body); }
+figure.source { margin: 12px 0 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); overflow: hidden; }
+figure.source img { display: block; width: 100%; height: auto; }
+figure.source figcaption { font-size: .8rem; color: var(--muted); padding: 4px 10px; border-top: 1px solid var(--line); font-family: var(--font-mono); }
+img.src-dark { display: none !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) img.src-light { display: none !important; }
+  :root:not([data-theme="light"]) img.src-dark { display: block !important; }
+}
+:root[data-theme="dark"] img.src-light { display: none !important; }
+:root[data-theme="dark"] img.src-dark { display: block !important; }
 .tbl { overflow-x: auto; }
 table { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 8px 0; background: var(--paper); }
 th, td { border: 1px solid var(--line); padding: 4px 12px; text-align: left; }
