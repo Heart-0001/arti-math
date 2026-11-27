@@ -1,156 +1,177 @@
 ---
 name: arti-math
-description: Write the current answer onto a per-session artifact notebook page — math typeset with MathJax, diagrams drawn as inline SVG — and leave only a short summary plus the link in the terminal. Use ONLY when the user explicitly asks for it, e.g. types /arti-math, or says 「開 artifact 講」「用 artifact 回答」「寫到筆記頁」「這題畫在頁面上」「放到 artifact」, or, once a notebook page exists in this session, says 「接著寫」「下一題」「加到筆記」「覆蓋筆記」「重寫筆記」. Once the page exists, short follow-up questions (wording, concept checks, one-line "why") are answered in the terminal, not on the page — see "Page or terminal?". Do not use it on your own initiative when the user has not mentioned an artifact or the notebook page.
+description: Write the current answer as 16:9 slides on a per-session artifact deck — one idea per slide, page with arrow keys, math typeset with MathJax, diagrams drawn as inline SVG — and leave only a short summary plus the link in the terminal. Use ONLY when the user explicitly asks for it, e.g. types /arti-math, or says 「開 artifact 講」「用 artifact 回答」「做成投影片」「用投影片講」「寫到筆記頁」「這題畫在頁面上」「放到 artifact」「帶我讀第 N 章」, or, once a deck exists in this session, says 「接著寫」「下一題」「加到投影片」「加到筆記」「覆蓋」「重寫」. Once the deck exists, short follow-up questions (wording, concept checks, one-line "why") are answered in the terminal, not on the deck — see "Deck or terminal?". Do not use it on your own initiative when the user has not mentioned an artifact, slides or the notebook page.
 ---
 
-# arti-math — notebook page for math and diagrams
+# arti-math — slide deck for math and diagrams
 
-The user studies engineering courses inside Claude Code. Raw LaTeX and ASCII diagrams in the terminal are hard to read, so this skill moves the answer onto a web page where formulas are actually typeset and circuits, phasor diagrams, etc. are drawn. The terminal keeps only a few lines and the link.
+The user studies engineering courses inside Claude Code. Raw LaTeX and ASCII diagrams in the terminal are hard to read, so this skill puts the answer on a web page laid out as 16:9 slides: a fixed 1280×720 stage that scales to the window, one idea per slide, paged with ←/→, buttons, swipe, or a page menu. Formulas are typeset and circuits, phasor diagrams, etc. are drawn. The terminal keeps only a few lines and the link.
 
-## One page per session
+It is a plain HTML artifact on purpose: the Slides artifact type cannot render math, so do not use it here.
 
-- The page file always lives at **`<scratchpad>/note/note.html`**, where `<scratchpad>` is the session scratchpad directory from the system prompt (use its full absolute path). The scratchpad is unique per session, so "one page per session" falls out naturally.
-- Always publish with the **same `file_path`**, so the URL never changes and an open page updates in place.
+## One deck per session
 
-## Page or terminal?
+- The deck file lives at **`<scratchpad>/deck/deck.html`**, where `<scratchpad>` is the session scratchpad directory from the system prompt (full absolute path). Always publish with this same `file_path`, so the URL never changes and an open deck updates in place.
+- Exception — a **chapter deck** (see "Studying a whole chapter") lives in the course folder instead, because it is reused across sessions.
 
-The page is for content that needs typesetting, not for every message. Decide by what the answer needs, not by how big the question is.
+## Deck or terminal?
 
-- **Write to the page**: a new problem or topic (「下一題」「接著寫」), multi-line derivations (`aligned`), anything that needs a drawing (circuit, phasor diagram, waveform), or a crop of the problem / manual to compare against.
-- **Answer in the terminal**: follow-ups that clarify wording or concepts (「題目哪句在講什麼」「這個詞什麼意思」), one- or two-line "why" questions, and answers with at most a couple of simple formulas that read fine as Unicode / `$…$` in the terminal.
-- **Explicit request wins**: if the user says 「寫到筆記」「加到頁面」「放到 artifact」, write it to the page even if it is short.
-- After a terminal answer, do **not** ask whether to add it to the page; the user will say so.
-- An entry is one problem or one topic, not one chat message. When a follow-up the user wants on the page belongs to an existing entry, extend that entry (add a sub-heading inside its `<section>`) rather than appending a new one — the page should read like notes, not a chat log.
+The deck is for content that needs typesetting, not for every message. Decide by what the answer needs, not by how big the question is.
+
+- **Deck**: a new problem or topic (「下一題」「接著寫」), multi-line derivations, anything that needs a drawing, or a crop of the problem / manual to compare against.
+- **Terminal**: follow-ups that clarify wording or concepts, one- or two-line "why" questions, answers with at most a couple of simple formulas. The terminal does not render LaTeX for this user, so write those formulas as plain text or in a code block (`V_S = A·V_R + B·I_R`).
+- **Explicit request wins**: 「寫到投影片」「加到頁面」「放到 artifact」 → deck, even if short.
+- After a terminal answer, do **not** ask whether to add it to the deck; the user will say so.
+- Keep terminal answers short: answer what was asked, don't volunteer extra material.
 
 ## Workflow
 
-### 1. Decide: create, append, or overwrite
+### 1. Create, append, or overwrite
 
-- **File does not exist** → create the page.
-- **File exists** → **append** one entry by default. **Overwrite** only when the user says so (「覆蓋」「重寫」「清掉重來」「換新的」).
-- If the user is **correcting the previous entry** ("上一題算錯了"), fix that entry in place instead of appending a duplicate.
+- **File does not exist** → create the deck.
+- **File exists** → **append** slides by default. **Overwrite** only when the user says so (「覆蓋」「重寫」「清掉重來」「換新的」).
+- **Correcting earlier slides** ("上一題算錯了") → fix those slides in place with `edits`; don't append a duplicate.
 
-### 2. Create the page
+### 2. Create the deck
 
-1. The Artifact tool requires loading the `artifact-design` skill before writing a page; do that on this first creation. The bundled template already satisfies its page contract (title, two-theme tokens, phone width, CDN allowlist), so don't redesign — just use the template.
-2. Copy the template and fill the two placeholders in one Bash command. Use `sed`, which works in Git Bash, macOS and Linux alike (`python` is often missing from Git Bash's PATH on Windows):
+1. Load the `artifact-design` skill before the first publish (the Artifact tool requires it). The template already meets its page contract (title, two-theme tokens, phone width, CDN allowlist) — don't redesign, just use it.
+2. Copy the template and fill the placeholders with `sed` (works in Git Bash; `python` is often missing from its PATH):
    ```bash
-   mkdir -p "<scratchpad>/note" && sed -e 's/__TITLE__/<title>/g' -e 's/__SUBTITLE__/<subtitle>/' "$HOME/.claude/skills/arti-math/assets/template.html" > "<scratchpad>/note/note.html"
+   mkdir -p "<scratchpad>/deck" && sed -e 's/__TITLE__/<title>/g' -e 's/__SUBTITLE__/<subtitle>/' "$HOME/.claude/skills/arti-math/assets/template.html" > "<scratchpad>/deck/deck.html"
    ```
-   - `__TITLE__` (appears twice): a 2–4 word name from course + topic, e.g. 「電力系統 Ch3 筆記」. Never change it on later appends.
-   - `__SUBTITLE__`: course/folder and date, e.g. 「NTUST 115-1 · 2026-10-17」.
-3. Publish with `Artifact`: `file_path`, `icon: "notebook"`, a one-sentence `description`, and the first entry inserted via `edits` (same as step 3 below).
+   - `__TITLE__` (twice: `<title>` and the cover): 2–4 words from course + topic, e.g. 「電力系統 Ch3」. Never change it later.
+   - `__SUBTITLE__`: course and date, e.g. 「NTUST 115-1 · 2026-11-27」.
+3. Publish with `Artifact`: `file_path`, `icon: "slides"`, a one-sentence `description`, and the first slides inserted via `edits` (as in step 3).
 
-### 3. Append an entry (the common case)
+### 3. Append slides (the common case)
 
-One `Artifact` publish call with `file_path` and `edits` — no Read, no separate Edit:
+One `Artifact` publish with `file_path` and `edits` — no Read, no separate Edit:
 
 ```
-edits: [{ "old_str": "<!-- NEXT -->", "new_str": "<section class=\"entry\">…</section>\n<!-- NEXT -->" }]
+edits: [{ "old_str": "<!-- NEXT -->", "new_str": "<section class=\"slide\" data-start>…</section>\n<section class=\"slide\">…</section>\n<!-- NEXT -->" }]
 ```
 
-`<!-- NEXT -->` occurs exactly once in the file, so new entries stack at the bottom. The table of contents is built by page JS from each entry's `<h2>`, and on load the page scrolls to the newest entry — nothing else to maintain. Omit `icon` on every publish after the first.
+- `<!-- NEXT -->` occurs exactly once, so slides stack at the end.
+- Put **`data-start` on the first slide of each answer.** On open (no `#pN` in the URL) the deck jumps to the last `data-start`, i.e. the start of the newest answer. Older `data-start`s are harmless; leave them.
+- Page count, page menu and the overflow check are done by page JS — nothing else to maintain. Omit `icon` after the first publish.
 
 ### 4. Overwrite
 
-Rewrite `note.html` with Write: the template content (keeping the existing title) plus just the new entry. Publish with the same `file_path`, without `icon`.
+Rewrite the file with Write: the template (same title) plus just the new slides. Publish with the same `file_path`, no `icon`.
 
 ### 5. Terminal reply
 
-2–4 lines only: the conclusion or final numeric answer, then a pointer that the full derivation and figures are on the page, with the link. Do **not** repeat the derivation in the terminal — the whole point is to read it on the page.
+2–4 lines: the conclusion or final number (plain text), then the link and which pages to look at (「第 5–7 頁」). Don't repeat the derivation in the terminal.
 
-## Working from course files
+## Turning an answer into slides
 
-Often the user is studying from a file — a textbook PDF, a solution manual, their own solution PDF ("帶我看 Ch3 sol 的 3.4"). They will not flip between the PDF and the page, so **the page must be self-contained**: put the relevant part of the file (the problem statement, the figure, the manual step being discussed) on the page as an image right above the explanation.
+The stage is fixed at 1280×720 with 56/80 px padding, so space is the main constraint. One slide = one idea.
 
-1. **Find it.** Read the file with the Read tool (PDF `pages`), and/or locate text with the bundled script:
-   ```
-   py "$HOME/.claude/skills/arti-math/scripts/pdfcrop.py" find "<pdf>" "Problem 3.4"
-   ```
-   (`py` on Windows, `python3` elsewhere; needs `pip install pymupdf`.) `find` is a substring match — "3.4" also hits 3.40–3.49 — so confirm the page by looking at it.
-2. **Look before cropping.** `render <pdf> <page> <out.png>` writes a low-dpi page image; view it with Read and pick the box as page fractions `x0,y0,x1,y1` (origin top-left). `find` prints boxes in the same units, which helps place the top edge.
-3. **Crop.** Save into `<scratchpad>/note/img/`:
-   ```
-   py "$HOME/.claude/skills/arti-math/scripts/pdfcrop.py" crop "<pdf>" <page> "<scratchpad>/note/img/p3-4" --box 0.05,0.06,0.95,0.42
-   ```
-   This writes `p3-4.png` and `p3-4_dark.png`, already tinted to the page's paper/ink colors for each theme (no CSS filters, which blur). Add `--color` when the color itself carries meaning (colored plots); then the light image keeps its colors and the dark one is inverted. Read the cropped PNG once to check nothing is cut off; a problem that spans two pages gets two crops shown one after another.
-4. **Upload, then append.** `edits` cannot be combined with `files`, so it takes two publishes of the same `file_path`:
-   - first `Artifact` publish with `files: {"img/p3-4.png": "<scratchpad>/note/img/p3-4.png", "img/p3-4_dark.png": "<scratchpad>/note/img/p3-4_dark.png"}` (page unchanged),
-   - then the usual `edits` publish that appends the entry referencing them.
-   Uploaded files persist across later publishes, so each image is uploaded once.
-5. In the entry, cite the source in the caption (file name + PDF page; printed page too when it differs) so the user can find it again:
-   ```html
-   <figure class="source">
-     <img class="src-light" src="img/p3-4.png" alt="Problem 3.4 題目">
-     <img class="src-dark" src="img/p3-4_dark.png" alt="">
-     <figcaption>Chapter3 Sol.pdf · PDF p.4</figcaption>
-   </figure>
-   ```
-6. **Fixed problem → two columns.** When the entry is built around a fixed source (a problem statement, a manual excerpt), make `<div class="prob">…</div>` the entry's first child and put the `.ask`, the `<h2>`, the `figure.source` and the short 題意 paragraph inside it, so the question line and title stay pinned with the problem. On wide screens the template then shows that block pinned in the left column while the explanation scrolls on the right; narrow screens stay single-column. Entries without a fixed source (concept questions, plain explanations) don't get a `.prob` and stay single-column — don't wrap other content in `.prob` just to get the layout.
+- **Concept slide** (`.slide`): eyebrow (section number + topic), an `<h2>` that states the point as a sentence (「短線：A=1、B=Z」, not 「短線模型」), then one key formula and 2–4 cards or a short table. A `.note` line at the bottom defines symbols.
+- **Example slide** (`.slide.ex`): eyebrow 「例題 · 作業 x.y(z)」, `<h2>` stating the method, then `.exgrid` with the problem in `.prob` (left) and the work in `.sol` (right), ending with `.answer`.
+- **Cover / section divider** (`.slide.inv`): dark background; use sparingly to separate big sections.
+- **Budget per slide**: about 6 lines of `aligned` in `.sol`, 4 cards in a row, 5 table rows, 3 lines of prose. More than that → split across slides (「…（續）」), don't cram.
+- A homework problem with several parts usually becomes one example slide per part or per pair of short parts.
+- Each answer that introduces a concept should be followed by an example slide that works a basic part of a real homework problem, so symbols like z, y, γ, ABCD are tied to numbers.
 
-Crop only what the entry discusses. The images are context; the explanation, derivation and redrawn diagrams are still written out on the page as usual — don't paste a whole solution page in place of explaining it.
+If a slide still overflows, the page shrinks its content down to 70%, and past that shows a red 「內容超出此頁」 badge. Treat the badge as a bug: split the slide.
 
-## Entry HTML
+### Optional visual check
+
+When the deck has new diagrams or dense slides and Chrome exists, screenshot the pages before replying:
+```bash
+timeout 60 "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu --user-data-dir="<scratchpad>/chrome" --window-size=1400,820 --virtual-time-budget=15000 --screenshot="<scratchpad>/deck/shot.png" "file:///<scratchpad>/deck/deck.html#p5"
+```
+Read the PNG; check for the overflow badge, overlapping SVG labels and broken line breaks in `aligned`.
+
+## Studying a whole chapter
+
+When the user wants to learn a chapter (「帶我讀第 5 章」「把第 N 章做成投影片」):
+
+- Save the source as **`<course folder>/Ch{N} 投影片.html`** (not the scratchpad) and publish from that path; record the artifact URL in the course's project memory. In a later session, republish that same file with `url` set to the recorded link so the deck updates instead of getting a new link.
+- Structure: cover → for each section, concept slide(s) then an example slide → a closing 「做作業前」 slide with the solving steps and the homework problem numbers.
+- Example numbers come from the verified solution in the course folder (e.g. `Chapter5 Sol.pdf`) and are re-checked in Python before they go on a slide.
+- When the user stops partway, note in the course memory which page they reached.
+
+## Slide HTML
 
 ```html
-<section class="entry">
-  <p class="ask">One-line paraphrase of the user's question</p>
-  <h2>Entry title (shown in the TOC)</h2>
+<section class="slide" data-start>
+  <p class="ask">One-line paraphrase of the user's question (first slide of an answer only)</p>
+  <p class="eyebrow">5.1 雙埠模型</p>
+  <h2>任何線路都能寫成 ABCD</h2>
+  <div class="math big">$$\begin{bmatrix}V_S\\ I_S\end{bmatrix}=\begin{bmatrix}A&B\\ C&D\end{bmatrix}\begin{bmatrix}V_R\\ I_R\end{bmatrix}$$</div>
+  <div class="row4">
+    <div class="card"><h3>$A$</h3><p>開路電壓比，無單位</p></div>
+    …
+  </div>
+  <p class="note">S：送電端，R：受電端。</p>
+</section>
 
-  <p>Prose with inline math such as $Z_{base} = \dfrac{V_{base}^2}{S_{base}}$.</p>
-
-  <div class="math">$$ I = \frac{S^*}{\sqrt{3}\,V^*} $$</div>
-
-  <ol class="steps"><li>Step one…</li><li>Step two…</li></ol>
-
-  <figure class="diagram">
-    <svg viewBox="0 0 400 160" width="400" role="img" aria-label="…">…</svg>
-    <figcaption>圖：…</figcaption>
-  </figure>
-
-  <div class="tbl"><table>…</table></div>
-
-  <div class="tip">Intuition or a small reminder</div>
-  <div class="warn">Common mistake</div>
-  <div class="answer">$I = 2.31\angle{-36.9^\circ}\ \text{kA}$</div>
+<section class="slide ex">
+  <p class="eyebrow">例題 · 作業 5.1（短線）</p>
+  <h2>短線：$A=1$、$B=Z$</h2>
+  <div class="exgrid">
+    <div class="prob">30 km、34.5 kV 三相線路，受電端在 <b>33 kV</b> 吸收 <b>10 MVA</b>…</div>
+    <div class="sol">
+      $$\begin{aligned} Z&=zl=11.68\angle 60.8^\circ\ \Omega\\ V_S&=AV_R+BI_R=20.76\angle 3.24^\circ\ \text{kV} \end{aligned}$$
+      <div class="answer">$|V_S|_{LL}=35.96\ \text{kV}$</div>
+    </div>
+  </div>
 </section>
 ```
 
 | class | purpose |
 |---|---|
-| `.ask` | small caption with the user's question |
-| `.math` | wraps display math; scrolls sideways if too wide |
-| `ol.steps` | ordered derivation steps |
-| `figure.diagram` | SVG figure |
-| `figure.source` | cropped image from a course file (light + dark `<img>`), see above |
-| `.prob` | first child of an entry with a fixed problem; holds `.ask`, `<h2>`, source crop and 題意; pinned left column on wide screens |
-| `.tbl` | wraps a table; scrolls sideways if too wide |
+| `.slide` / `.slide.ex` / `.slide.inv` | concept / example (orange eyebrow) / dark cover or divider |
+| `data-start` | first slide of an answer; deck opens there |
+| `data-title="…"` | optional page-menu label when the `<h2>` is unsuitable |
+| `.ask` | small 「問 ·」 line with the user's question |
+| `.eyebrow`, `h1`, `h2`, `h3`, `.lead`, `.note` | section label, cover title, slide title, sub-heading, cover subtitle, small footnote |
+| `.math`, `.math.big` | display math, 36 / 48 px |
+| `.row`, `.grid2`, `.row4`, `.card` | flexible row, 2×2 grid, 4 columns, tinted box |
+| `.exgrid` > `.prob` + `.sol` | example layout: problem left, work right |
+| `ol.steps`, `table` | ordered steps, table |
 | `.tip` / `.warn` | hint / common mistake |
 | `.answer` | final answer, yellow highlight |
+| `figure.diagram`, `figure.source` | SVG figure, cropped course-file image |
 
-Pick the pieces the content needs; not every entry uses all of them.
+## Working from course files
+
+When the user studies from a file (textbook, solution manual, their own solution PDF — 「帶我看 Ch3 sol 的 3.4」), the deck must be self-contained: put the problem text on the slide.
+
+- **Prefer retyping** the problem into `.prob` (numbers in `<b>`, math in `$…$`) and redrawing its figure as SVG. It stays sharp, themes correctly and fits the slide.
+- **Crop only when retyping is impractical** (scans, handwriting, dense figures):
+  1. Locate: `py "$HOME/.claude/skills/arti-math/scripts/pdfcrop.py" find "<pdf>" "Problem 3.4"` (`py` on Windows, `python3` elsewhere; needs `pymupdf`). Substring match — confirm by looking.
+  2. Look: `render <pdf> <page> <out.png>`, view it, pick the box as page fractions `x0,y0,x1,y1`.
+  3. Crop: `crop "<pdf>" <page> "<scratchpad>/deck/img/p3-4" --box …` → `p3-4.png` + `p3-4_dark.png`, pre-tinted to the deck's paper/ink (`--color` keeps colors when they carry meaning). Check the PNG once.
+  4. Upload, then append — `edits` can't be combined with `files`, so two publishes of the same `file_path`: first with `files: {"img/p3-4.png": "…", "img/p3-4_dark.png": "…"}`, then the `edits` publish. Uploaded files persist.
+  5. Place it inside `.prob` and cite the source:
+     ```html
+     <figure class="source">
+       <img class="src-light" src="img/p3-4.png" alt="Problem 3.4 題目">
+       <img class="src-dark" src="img/p3-4_dark.png" alt="">
+       <figcaption>Chapter3 Sol.pdf · PDF p.4</figcaption>
+     </figure>
+     ```
 
 ## Math
 
-- MathJax (SVG output). Inline: `$…$` or `\(…\)`. Display: `$$…$$`.
-- Multi-line derivations: `\begin{aligned} … \\ … \end{aligned}`. The line break must really be two backslashes. Writing through `edits` JSON or the Write tool is safe; **never** write the file with a Bash heredoc, which eats backslashes.
+- MathJax (SVG output). Inline `$…$` or `\(…\)`; display `$$…$$`. Display math is left-aligned on slides.
+- Multi-line: `\begin{aligned} … \\ … \end{aligned}` — the line break must really be two backslashes. Writing through `edits` JSON or the Write tool is safe; **never** write the file with a Bash heredoc, which eats backslashes.
 - A literal dollar sign in prose is `\$`.
 
 ## Diagrams
 
-- Draw only when a picture helps understanding (circuits, phasor diagrams, block diagrams, waveforms, plots, geometry). For anything non-trivial, consult the `artifact-diagramming` skill first.
-- Inline SVG that reads in both themes:
-  - Lines and text use `currentColor` (`svg text` already defaults to it).
-  - Emphasis: `class="accent"` for strokes, `class="fill-accent"` for fills.
-  - No hard-coded `#000`, `white`, etc. that only work in one theme.
-  - Give every closed shape an explicit `fill` (usually `fill="none"`).
-  - Leave room in the viewBox for outer labels; labels must not overlap.
-  - Arrowheads: a `<marker>` whose path uses `fill="currentColor"` (or `class="fill-accent"` for an accent arrow). Give each marker a unique id across the whole page (e.g. prefix with the entry number), since all entries share one document.
-- MathJax does not touch text inside SVG — use plain text with `<tspan baseline-shift="sub" font-size="10">` for subscripts and Unicode for Greek letters and symbols (θ, ∠, Ω, °).
-- Flowcharts / state diagrams may use `<pre class="mermaid">…</pre>`; the platform renders it natively, no library needed.
+- Draw when a picture helps (circuits, phasor diagrams, block diagrams, waveforms). For anything non-trivial, consult the `artifact-diagramming` skill first.
+- Size for the stage: `viewBox` width ≤ 1120 (full slide width) or ≤ 640 (beside text); text `font-size` 22–26, subscripts 16–18.
+- Both themes: lines and text use `currentColor`; emphasis with `stroke="var(--accent)"` / `class="accent"`, tinted fills with `fill="var(--soft)"`; no hard-coded `#000` / `white`; every closed shape gets an explicit `fill`.
+- Arrowheads: a `<marker>` whose path uses `fill="currentColor"`. Marker ids must be unique across the whole deck (prefix with the slide id).
+- MathJax does not touch SVG text — use `<tspan baseline-shift="sub" font-size="18">` for subscripts and Unicode for symbols (θ, ∠, Ω, °).
+- Leave room for outer labels; labels must not overlap.
 
 ## Content
 
-- Write the page content in Traditional Chinese with Taiwanese terminology; add the English term in parentheses on first use of a technical term.
-- Explain intuition first, then the derivation. Show the substituted numbers in every calculation, not just the formula.
-- If the working folder's CLAUDE.md has course-specific rules (notation, following the solution manual, verifying numbers in Python), the content follows those rules; this skill only decides the **presentation**.
+- Traditional Chinese with Taiwanese terminology; English term in parentheses on first use.
+- Intuition first, then the derivation; show substituted numbers, not just formulas.
+- If the course folder's CLAUDE.md or project memory has rules (notation, following the solution manual, Python verification, units with k/M prefixes), the content follows them; this skill only decides the **presentation**.

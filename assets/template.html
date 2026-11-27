@@ -1,84 +1,105 @@
 <title>__TITLE__</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
-/* Layout: 工程計算紙 — 單欄筆記，每次回答是一個 entry，最新的在最下面，上方有目錄 */
+/* Layout: 1280x720 固定舞台，依視窗縮放；一頁一個重點，下方是翻頁列。新頁加在 <!-- NEXT --> 前面 */
 :root {
-  --bg: #f2f5f1;
-  --paper: #fbfcfa;
-  --grid: #dfe7df;
-  --ink: #1c2622;
-  --muted: #5d6b64;
-  --line: #c9d4cb;
-  --accent: #1d6a84;
-  --accent-soft: #e2eef2;
-  --answer: #fff1a8;
-  --answer-ink: #3d3300;
-  --warn: #b4442c;
-  --warn-soft: #f8e6e1;
-  --font-body: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
-  --font-display: "Noto Serif TC", "PMingLiU", serif;
-  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  --bg: #e6ebe8; --paper: #fbfcfa; --ink: #1c2622; --muted: #55645c; --line: #cfd8d3;
+  --accent: #1d6a84; --ex: #b4581c; --soft: #e2eef2; --hl: #fff1a8; --hl-ink: #3d3300;
+  --warn: #b4442c; --warn-soft: #f8e6e1;
+  --inv-bg: #17323d; --inv-fg: #eaf3f6; --inv-accent: #8fd3ea; --inv-soft: #214553; --inv-muted: #bcd3dc;
+  --font: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #111714; --paper: #161e1a; --grid: #1f2a25; --ink: #dde6e0; --muted: #94a59c;
-    --line: #2e3b35; --accent: #6cc3df; --accent-soft: #17303a; --answer: #4a4110; --answer-ink: #fff3b8;
-    --warn: #ef8a72; --warn-soft: #3a1f19; color-scheme: dark;
+    --bg: #0c110f; --paper: #161e1a; --ink: #dde6e0; --muted: #94a59c; --line: #2e3b35;
+    --accent: #6cc3df; --ex: #f0a36b; --soft: #17303a; --hl: #4a4110; --hl-ink: #fff3b8;
+    --warn: #ef8a72; --warn-soft: #3a1f19;
+    --inv-bg: #0f2a33; --inv-fg: #eaf3f6; --inv-accent: #8fd3ea; --inv-soft: #1a3c48; --inv-muted: #bcd3dc;
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #111714; --paper: #161e1a; --grid: #1f2a25; --ink: #dde6e0; --muted: #94a59c;
-  --line: #2e3b35; --accent: #6cc3df; --accent-soft: #17303a; --answer: #4a4110; --answer-ink: #fff3b8;
-  --warn: #ef8a72; --warn-soft: #3a1f19; color-scheme: dark;
+  --bg: #0c110f; --paper: #161e1a; --ink: #dde6e0; --muted: #94a59c; --line: #2e3b35;
+  --accent: #6cc3df; --ex: #f0a36b; --soft: #17303a; --hl: #4a4110; --hl-ink: #fff3b8;
+  --warn: #ef8a72; --warn-soft: #3a1f19;
+  --inv-bg: #0f2a33; --inv-fg: #eaf3f6; --inv-accent: #8fd3ea; --inv-soft: #1a3c48; --inv-muted: #bcd3dc;
+  color-scheme: dark;
 }
-body {
-  background: var(--bg); color: var(--ink);
-  font: 16px/1.75 var(--font-body);
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 28px 64px;
-}
-.wrap { max-width: 860px; margin: 0 auto; display: grid; gap: 20px; }
-header.top h1 { font: 700 1.6rem/1.3 var(--font-display); margin: 0; text-wrap: balance; }
-header.top p { margin: 4px 0 0; color: var(--muted); font-size: .9rem; }
-#toc { display: flex; flex-wrap: wrap; gap: 6px 8px; font-size: .85rem; }
-#toc a { color: var(--accent); text-decoration: none; border: 1px solid var(--line); padding: 2px 10px; border-radius: 999px; background: var(--paper); }
-#toc a:hover, #toc a:focus-visible { border-color: var(--accent); outline: none; }
-#notes { display: grid; gap: 28px; }
-.entry {
-  background-color: var(--paper);
-  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px;
-  border: 1px solid var(--line); border-radius: 6px;
-  padding: 20px clamp(16px, 4vw, 32px) 24px;
-  min-width: 0; scroll-margin-top: 16px;
-}
-.entry > * { max-width: 100%; }
-.entry .ask { margin: 0 0 6px; color: var(--muted); font-size: .85rem; letter-spacing: .02em; }
-.entry .ask::before { content: "問 · "; color: var(--accent); font-weight: 700; }
-.entry h2 { font: 700 1.3rem/1.35 var(--font-display); margin: 0 0 12px; text-wrap: balance; }
-.entry h3 { font-size: 1.05rem; margin: 22px 0 6px; color: var(--accent); }
-.entry p, .entry li { max-width: 68ch; }
-.entry code { font-family: var(--font-mono); font-size: .9em; background: var(--accent-soft); padding: 0 4px; border-radius: 3px; }
-.math { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
-mjx-container[display="true"] { margin: .6em 0 !important; }
-.answer { background: var(--answer); color: var(--answer-ink); padding: 10px 14px; border-radius: 4px; font-weight: 500; overflow-x: auto; }
-.tip, .warn { padding: 10px 14px; border-radius: 4px; font-size: .95rem; }
-.tip { background: var(--accent-soft); border-left: 3px solid var(--accent); }
-.warn { background: var(--warn-soft); border-left: 3px solid var(--warn); }
-.tip > :first-child, .warn > :first-child { margin-top: 0; }
-.tip > :last-child, .warn > :last-child { margin-bottom: 0; }
-figure.diagram { margin: 16px 0; overflow-x: auto; text-align: center; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); overflow: hidden; }
+#view { height: 100%; display: flex; flex-direction: column; gap: 12px; padding-block: 12px; box-sizing: border-box; }
+#fit { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#stage { position: relative; flex: none; width: 1280px; height: 720px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; transform-origin: center center; }
+.slide { position: absolute; inset: 0; padding: 56px 80px; display: none; font-size: 28px; line-height: 1.55; overflow: hidden; }
+.slide.on, .slide.measure { display: block; }
+.slide.measure { visibility: hidden; }
+.slide.inv { background: var(--inv-bg); color: var(--inv-fg); }
+.slide.overflow::after { content: "內容超出此頁"; position: absolute; right: 12px; bottom: 10px; font-size: 16px; color: #fff; background: #b4442c; padding: 2px 10px; border-radius: 999px; }
+
+/* 文字 */
+.eyebrow { font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--accent); margin: 0 0 8px; }
+.inv .eyebrow { color: var(--inv-accent); }
+.slide.ex .eyebrow { color: var(--ex); }
+.ask { font-size: 20px; color: var(--muted); margin: 0 0 6px; }
+.ask::before { content: "問 · "; color: var(--accent); font-weight: 700; }
+h1 { font-size: 84px; line-height: 1.15; margin: 0; font-weight: 700; text-wrap: balance; }
+h2 { font-size: 46px; line-height: 1.2; margin: 0 0 28px; font-weight: 700; text-wrap: balance; }
+h3 { font-size: 28px; margin: 18px 0 6px; color: var(--accent); }
+p { margin: 0 0 12px; }
+.lead { font-size: 30px; color: var(--muted); margin: 36px 0 0; }
+.inv .lead, .inv .note { color: var(--inv-muted); }
+.note { font-size: 24px; color: var(--muted); margin: 14px 0 0; }
+
+/* 數學 */
+.math { font-size: 36px; margin: 6px 0; }
+.math.big { font-size: 48px; }
+mjx-container[display="true"] { text-align: left !important; margin: .35em 0 !important; }
+.answer { background: var(--hl); color: var(--hl-ink); padding: 14px 24px; border-radius: 6px; font-size: 30px; font-weight: 500; margin-top: 28px; }
+
+/* 版面積木 */
+.row { display: flex; gap: 24px; margin-top: 26px; }
+.row > * { flex: 1; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 6px; }
+.row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 22px; }
+.row4 .card p { font-size: 22px; }
+.card { background: var(--soft); border-radius: 8px; padding: 18px 24px; }
+.inv .card { background: var(--inv-soft); }
+.card h3 { margin: 0 0 6px; font-size: 26px; color: var(--accent); }
+.inv .card h3 { color: var(--inv-accent); }
+.card p { margin: 0; font-size: 24px; line-height: 1.5; }
+.tip, .warn { padding: 12px 20px; border-radius: 6px; font-size: 23px; margin-top: 16px; }
+.tip { background: var(--soft); border-left: 4px solid var(--accent); }
+.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); }
+table { border-collapse: collapse; font-size: 26px; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; }
+th { background: var(--soft); font-weight: 500; }
+ol.steps { margin: 0; padding-left: 1.3em; font-size: 28px; line-height: 1.75; }
+
+/* 例題頁：左題目、右解法 */
+.exgrid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 32px; align-items: start; }
+.exgrid > * { min-width: 0; }
+.prob { background: var(--soft); border-radius: 8px; padding: 18px 24px; font-size: 23px; line-height: 1.6; }
+.prob b { color: var(--accent); }
+.sol { font-size: 25px; }
+.sol mjx-container[display="true"] { margin: 0 !important; }
+.sol .answer { font-size: 26px; margin-top: 14px; padding: 10px 20px; }
+
+/* 圖 */
+figure { margin: 0; }
+figure.diagram { text-align: center; }
 figure.diagram svg { max-width: 100%; height: auto; color: var(--ink); }
-figure.diagram figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+.inv figure.diagram svg { color: var(--inv-fg); }
+figcaption { font-size: 18px; color: var(--muted); margin-top: 6px; }
 svg .accent { stroke: var(--accent); fill: none; }
 svg .fill-accent { fill: var(--accent); }
-svg text { fill: currentColor; font-family: var(--font-body); }
-figure.source { margin: 12px 0 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); overflow: hidden; }
+svg .fill-soft { fill: var(--soft); }
+svg text { fill: currentColor; font-family: var(--font); }
+figure.source { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); overflow: hidden; }
 figure.source img { display: block; width: 100%; height: auto; }
-figure.source figcaption { font-size: .8rem; color: var(--muted); padding: 4px 10px; border-top: 1px solid var(--line); font-family: var(--font-mono); }
+figure.source figcaption { margin: 0; padding: 4px 12px; border-top: 1px solid var(--line); font-size: 16px; }
+.prob figure.source { margin: -4px -10px 10px; }
 img.src-dark { display: none !important; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) img.src-light { display: none !important; }
@@ -86,33 +107,33 @@ img.src-dark { display: none !important; }
 }
 :root[data-theme="dark"] img.src-light { display: none !important; }
 :root[data-theme="dark"] img.src-dark { display: block !important; }
-.tbl { overflow-x: auto; }
-table { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 8px 0; background: var(--paper); }
-th, td { border: 1px solid var(--line); padding: 4px 12px; text-align: left; }
-th { background: var(--accent-soft); font-weight: 500; }
-ol.steps { padding-left: 1.4em; }
-ol.steps > li { margin-bottom: 6px; }
-/* 有題目區塊（.prob）的 entry 在寬螢幕改左右兩欄：題目固定在左，解法在右往下捲；其他 entry 與窄螢幕維持單欄 */
-@media (min-width: 1100px) {
-  .wrap:has(.entry > .prob) { max-width: 1280px; }
-  .entry:has(> .prob) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 28px; align-items: start; }
-  .entry:has(> .prob) > * { grid-column: 2; }
-  .entry > .prob { grid-column: 1; grid-row: 1 / span 999; position: sticky; top: 12px; }
-  .entry > .prob figure.source { margin-top: 0; }
-  .entry > .prob + * { margin-top: 0; }
-}
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* 翻頁列 */
+#bar { flex: none; display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--muted); font-size: 15px; }
+#bar button, #bar select { font: inherit; font-size: 15px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 16px; cursor: pointer; }
+#bar select { max-width: min(46vw, 420px); padding-inline: 12px; }
+#bar button:hover, #bar button:focus-visible, #bar select:hover, #bar select:focus-visible { border-color: var(--accent); outline: none; }
+#bar button:disabled { opacity: .4; cursor: default; }
+#pg { min-width: 5em; text-align: center; font-variant-numeric: tabular-nums; }
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <h1>__TITLE__</h1>
-    <p>__SUBTITLE__</p>
-  </header>
-  <nav id="toc" aria-label="目錄"></nav>
-  <main id="notes">
+<div id="view">
+  <div id="fit"><div id="stage">
+
+<section class="slide inv" id="cover" data-title="封面">
+  <p class="eyebrow" style="margin-top:170px">__SUBTITLE__</p>
+  <h1>__TITLE__</h1>
+</section>
+
 <!-- NEXT -->
-  </main>
+
+  </div></div>
+  <div id="bar">
+    <button id="prev" type="button">上一頁</button>
+    <span id="pg">1 / 1</span>
+    <select id="jump" aria-label="跳到某一頁"></select>
+    <button id="next" type="button">下一頁</button>
+  </div>
 </div>
 
 <script>
@@ -124,34 +145,83 @@ window.MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
 <script>
 (function () {
-  var entries = document.querySelectorAll("#notes > .entry");
-  var toc = document.getElementById("toc");
-  entries.forEach(function (sec, i) {
-    if (!sec.id) sec.id = "n" + (i + 1);
-    var h = sec.querySelector("h2");
-    var a = document.createElement("a");
-    a.href = "#" + sec.id;
-    a.textContent = (i + 1) + ". " + (h ? h.textContent : "第 " + (i + 1) + " 則");
-    toc.appendChild(a);
+  var slides = Array.prototype.slice.call(document.querySelectorAll("#stage > .slide"));
+  var stage = document.getElementById("stage"), fit = document.getElementById("fit");
+  var pg = document.getElementById("pg"), prev = document.getElementById("prev"), next = document.getElementById("next");
+  var jump = document.getElementById("jump");
+  var cur = 0;
+  // 下拉選單的頁名：把標題裡常見的 TeX 指令換成 Unicode
+  var SYM = { alpha: "α", beta: "β", gamma: "γ", delta: "δ", theta: "θ", lambda: "λ", mu: "μ", pi: "π", rho: "ρ", sigma: "σ", tau: "τ", phi: "φ", omega: "ω", Omega: "Ω", Delta: "Δ",
+    neq: "≠", ne: "≠", le: "≤", leq: "≤", ge: "≥", geq: "≥", approx: "≈", times: "×", cdot: "·", angle: "∠", circ: "°", infty: "∞", to: "→", sqrt: "√", pm: "±" };
+  "sin cos tan sinh cosh tanh ln log exp max min Re Im".split(" ").forEach(function (f) { SYM[f] = f; });
+
+  // 每頁內容包進 .fitbox，太長時整頁等比例縮小（最低 0.7），還是放不下就標紅字
+  slides.forEach(function (s, k) {
+    var box = document.createElement("div");
+    box.className = "fitbox";
+    while (s.firstChild) box.appendChild(s.firstChild);
+    s.appendChild(box);
+    var h = box.querySelector("h1, h2");
+    var label = s.getAttribute("data-title") || (h ? h.textContent : "");
+    label = label.replace(/\$+([^$]*)\$+/g, "$1").replace(/\\([a-zA-Z]+)/g, function (_, c) { return SYM[c] || ""; }).replace(/[{}\\^_]/g, "").replace(/\s+/g, " ").trim();
+    var o = document.createElement("option");
+    o.value = k; o.textContent = (k + 1) + ". " + (label || "第 " + (k + 1) + " 頁");
+    jump.appendChild(o);
   });
-  toc.hidden = entries.length < 2;
-  // 題目左欄：把 sticky 的 top 設成它一開始的位置，從第一下捲動就固定不動
-  function pinProbs() {
-    if (window.scrollY > 0) return;
-    var wrap = document.querySelector(".wrap");
-    var z = parseFloat(getComputedStyle(wrap).zoom) || 1;
-    document.querySelectorAll(".entry > .prob").forEach(function (p) {
-      p.style.top = "";
-      if (getComputedStyle(p).position !== "sticky") return;
-      var t = p.getBoundingClientRect().top;
-      if (t > 0 && t < window.innerHeight * 0.5) p.style.top = (t / z) + "px";
+  function fitSlides() {
+    slides.forEach(function (s) {
+      var box = s.firstChild;
+      s.classList.add("measure");
+      var w = s.clientWidth - 160, z = 1, SLACK = 36; // 內容可吃進下方留白 36px（留白共 56px）
+      box.style.zoom = ""; box.style.width = "";
+      while ((s.scrollHeight > s.clientHeight + SLACK || box.scrollWidth > w + 1) && z > 0.71) {
+        z -= 0.05;
+        box.style.zoom = z; box.style.width = (w / z) + "px";
+      }
+      var bad = s.scrollHeight > s.clientHeight + SLACK || box.scrollWidth > w + 1;
+      s.classList.toggle("overflow", bad);
+      if (bad) console.warn("slide " + (slides.indexOf(s) + 1) + " overflows");
+      s.classList.remove("measure");
     });
   }
-  pinProbs();
-  window.addEventListener("load", pinProbs);
-  window.addEventListener("resize", pinProbs);
-  if (!location.hash && entries.length > 1) {
-    entries[entries.length - 1].scrollIntoView({ block: "start" });
+  function show(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) { s.classList.toggle("on", k === cur); });
+    pg.textContent = (cur + 1) + " / " + slides.length;
+    jump.value = cur;
+    prev.disabled = cur === 0; next.disabled = cur === slides.length - 1;
+    try { history.replaceState(null, "", "#p" + (cur + 1)); } catch (e) {}
   }
+  function scale() {
+    var s = Math.min(fit.clientWidth / 1280, fit.clientHeight / 720);
+    stage.style.transform = "scale(" + s + ")";
+  }
+  prev.addEventListener("click", function () { show(cur - 1); });
+  next.addEventListener("click", function () { show(cur + 1); });
+  jump.addEventListener("change", function () { show(parseInt(jump.value, 10)); jump.blur(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.target === jump) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); show(cur + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(cur - 1); }
+    else if (e.key === "Home") show(0); else if (e.key === "End") show(slides.length - 1);
+  });
+  var x0 = null;
+  stage.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener("touchend", function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+  window.addEventListener("resize", scale);
+
+  // 開啟時：網址有 #pN 就到第 N 頁，否則到最新一次回答的第一頁（最後一個 data-start）
+  var m = /^#p(\d+)$/.exec(location.hash || "");
+  var starts = document.querySelectorAll("#stage > .slide[data-start]");
+  var first = starts.length ? slides.indexOf(starts[starts.length - 1]) : 0;
+  show(m ? parseInt(m[1], 10) - 1 : first);
+  scale();
+  var ready = [document.fonts ? document.fonts.ready : null];
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) ready.push(MathJax.startup.promise);
+  Promise.all(ready).then(fitSlides, fitSlides);
 })();
 </script>
